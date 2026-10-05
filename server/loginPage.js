@@ -20,23 +20,24 @@ export function loginPageHtml(opts = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#1B3D36" />
+  <meta name="theme-color" content="#0F3D34" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Vuoro — kirjaudu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --pine: #1b3d36;
-      --accent: #c45c26;
-      --ink: #14241f;
-      --ink-soft: #3d534b;
-      --muted: #6a7f76;
-      --line: rgba(20, 36, 31, 0.14);
-      --surface: rgba(247, 251, 247, 0.92);
+      --pine: #0f3d34;
+      --pine-mid: #1a5c4e;
+      --accent: #178a72;
+      --ink: #0e1c19;
+      --ink-soft: #3a4f4a;
+      --muted: #667a74;
+      --line: rgba(14, 28, 25, 0.12);
+      --surface: rgba(245, 248, 249, 0.94);
       --font-display: "Fraunces", Georgia, serif;
-      --font-body: "Figtree", system-ui, sans-serif;
+      --font-body: "Manrope", system-ui, sans-serif;
     }
     * { box-sizing: border-box; }
     html, body { min-height: 100%; margin: 0; }
@@ -44,49 +45,64 @@ export function loginPageHtml(opts = {}) {
       font-family: var(--font-body);
       color: #e8f0e9;
       background:
-        radial-gradient(120% 80% at 8% 0%, #2a5a4c 0%, transparent 55%),
-        radial-gradient(90% 60% at 100% 10%, rgba(196, 92, 38, 0.28) 0%, transparent 50%),
-        linear-gradient(165deg, #1b3d36 0%, #0f241f 55%, #1a322c 100%);
+        radial-gradient(120% 80% at 8% 0%, #1a5c4e 0%, transparent 55%),
+        radial-gradient(90% 60% at 100% 10%, rgba(23, 138, 114, 0.28) 0%, transparent 50%),
+        linear-gradient(165deg, #0f3d34 0%, #0a241f 55%, #14352f 100%);
       display: grid;
       place-items: center;
       padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.25rem, env(safe-area-inset-bottom));
     }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      background-size: 180px 180px;
+      mix-blend-mode: soft-light;
+    }
     .card {
+      position: relative;
+      z-index: 1;
       width: min(100%, 26rem);
       background: var(--surface);
       color: var(--ink);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 1.6rem 1.35rem 1.5rem;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-      animation: rise 0.45s ease both;
+      border: 1px solid rgba(255,255,255,0.55);
+      border-radius: 20px;
+      padding: 1.75rem 1.4rem 1.55rem;
+      box-shadow: 0 28px 64px rgba(0, 0, 0, 0.32);
+      animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      backdrop-filter: blur(12px);
     }
     @keyframes rise {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .brand {
       font-family: var(--font-display);
-      font-size: clamp(2.4rem, 8vw, 3rem);
+      font-size: clamp(2.6rem, 8vw, 3.2rem);
       font-weight: 700;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.04em;
       color: var(--pine);
-      line-height: 0.95;
-      margin: 0 0 0.35rem;
+      line-height: 0.92;
+      margin: 0 0 0.4rem;
     }
     h1 {
       font-family: var(--font-display);
-      font-size: 1.45rem;
+      font-size: 1.4rem;
       margin: 0 0 0.35rem;
       color: var(--pine);
+      letter-spacing: -0.02em;
     }
     .lede {
-      margin: 0 0 1.25rem;
+      margin: 0 0 1.3rem;
       color: var(--ink-soft);
       line-height: 1.45;
       font-size: 0.98rem;
+      font-weight: 500;
     }
-    form { display: grid; gap: 0.85rem; }
+    form { display: grid; gap: 0.9rem; }
     label {
       display: grid;
       gap: 0.35rem;
@@ -98,16 +114,17 @@ export function loginPageHtml(opts = {}) {
     input[type="password"] {
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 0.8rem 0.9rem;
+      border-radius: 10px;
+      padding: 0.85rem 0.95rem;
       font: inherit;
       color: var(--ink);
       background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     input:focus {
-      outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
-      outline-offset: 1px;
-      border-color: var(--accent);
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
     }
     .remember {
       display: flex;
@@ -131,14 +148,18 @@ export function loginPageHtml(opts = {}) {
     button[type="submit"] {
       appearance: none;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       background: var(--accent);
-      color: #fff8f3;
+      color: #f4fffb;
       font: inherit;
       font-weight: 700;
-      padding: 0.9rem 1.1rem;
+      padding: 0.95rem 1.1rem;
       cursor: pointer;
+      box-shadow: 0 6px 18px rgba(23, 138, 114, 0.28);
+      transition: filter 0.15s ease, transform 0.15s ease;
     }
+    button[type="submit"]:hover { filter: brightness(1.05); }
+    button[type="submit"]:active { transform: translateY(1px); }
     .hint {
       margin: 0.15rem 0 0;
       color: var(--muted);
