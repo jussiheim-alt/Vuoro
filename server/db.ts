@@ -375,19 +375,36 @@ export function exportBackup(): VuoroBackup {
 }
 
 export function autoImportBackupIfEmpty() {
-  const n = (db.prepare('SELECT COUNT(*) AS c FROM lectures').get() as { c: number }).c
-  if (n > 0) return null
-  const candidates = [
-    path.join(dataDir, 'vuoro-varmuuskopio.json'),
-    path.join(process.cwd(), 'data', 'vuoro-varmuuskopio.json'),
-    process.env.BACKUP_FILE || '',
-  ].filter(Boolean)
-  for (const file of candidates) {
-    if (!fs.existsSync(file)) continue
-    const backup = JSON.parse(fs.readFileSync(file, 'utf8')) as VuoroBackup
-    const stats = importBackup(backup)
-    console.log(`Tuotu varmuuskopio ${file}:`, stats)
-    return stats
+  try {
+    const n = (db.prepare('SELECT COUNT(*) AS c FROM lectures').get() as { c: number }).c
+    if (n > 0) return null
+    const candidates = [
+      path.join(dataDir, 'vuoro-varmuuskopio-slim.json'),
+      path.join(process.cwd(), 'data', 'vuoro-varmuuskopio-slim.json'),
+      path.join(dataDir, 'vuoro-varmuuskopio.json'),
+      path.join(process.cwd(), 'data', 'vuoro-varmuuskopio.json'),
+      process.env.BACKUP_FILE || '',
+    ].filter(Boolean)
+    for (const file of candidates) {
+      if (!fs.existsSync(file)) continue
+      console.log(`Tuodaan varmuuskopio: ${file}`)
+      const backup = JSON.parse(fs.readFileSync(file, 'utf8')) as VuoroBackup
+      // PDF-blobit jätetään pois bootissa (muisti). Tuo täysi JSON Asetuksista tarvittaessa.
+      const safe: VuoroBackup = {
+        ...backup,
+        pdfArchives: Array.isArray(backup.pdfArchives)
+          ? backup.pdfArchives.map((p: any) => ({
+              ...p,
+              blobBase64: undefined,
+            }))
+          : [],
+      }
+      const stats = importBackup(safe)
+      console.log(`Tuotu varmuuskopio ${file}:`, stats)
+      return stats
+    }
+  } catch (e) {
+    console.error('Varmuuskopion automaattituonti epäonnistui (palvelu käynnistyy silti):', e)
   }
   return null
 }

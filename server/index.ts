@@ -26,12 +26,11 @@ const publicDir = path.join(__dirname, '..', 'public')
 const PORT = Number(process.env.PORT || 8788)
 
 ensureAdminUser()
-autoImportBackupIfEmpty()
 
 const app = express()
 app.set('trust proxy', 1)
 app.use(cors({ origin: true, credentials: true }))
-app.use(express.json({ limit: '40mb' }))
+app.use(express.json({ limit: '12mb' }))
 app.use(cookieParser())
 
 const api = express.Router()
@@ -289,4 +288,12 @@ app.get('*', (req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Vuoro (esitelmät) portissa ${PORT}`)
+  // Tuonti vasta kun palvelin kuuntelee — ei kaada bootia.
+  setImmediate(() => {
+    try {
+      autoImportBackupIfEmpty()
+    } catch (e) {
+      console.error('Backup-tuonti epäonnistui:', e)
+    }
+  })
 })

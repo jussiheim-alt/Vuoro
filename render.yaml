@@ -26,3 +26,5 @@ services:
         sync: false
       - key: ADMIN_NAME
         value: Jussi Heimonen
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=512
