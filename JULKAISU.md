@@ -1,15 +1,21 @@
 # Vuoro (esitelmät) — julkaisu Renderiin
 
+## Tärkeää: Web Service, ei Private Service
+
+Palvelun tyypin pitää olla **Web Service** (julkinen URL).  
+Private Service ei aukea selaimella.
+
 ## Kirjautuminen
 
-Render-palvelun URL (Dashboard → Vuoro → yläreunan linkki).
+Render-palvelun URL (Dashboard → Vuoro → yläreunan linkki), esim. `https://vuoro-….onrender.com`.
 
-Ensimmäinen tunnus: `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
+Tunnus: `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
 
 ## Ympäristömuuttujat
 
 | Key | Value |
 |-----|--------|
+| `NODE_VERSION` | `22` |
 | `NODE_ENV` | `production` |
 | `DATA_DIR` | `/var/data` |
 | `JWT_SECRET` | pitkä satunnainen |
@@ -23,12 +29,10 @@ Disks → Mount Path **`/var/data`** (1 GB).
 
 ## Varmuuskopio Netlifystä
 
-Repo sisältää kevyen siemendatan (esitelmät/puhujat/teemat **ilman PDF-blobia**), joka tuodaan automaattisesti tyhjään kantaan.
+Repo sisältää kevyen siemendatan (esitelmät/puhujat/teemat ilman PDF-blobia).
 
-PDF-arkistot: kirjaudu → **Asetukset → Tuo varmuuskopio** → valitse Netlify-tiedosto `vuoro-varmuuskopio_….json`.
-
-Jos Render kaatui exit 134: vanha deploy yritti ladata kaikki PDF:t bootissa. Uusi versio korjaa tämän — merge / redeploy.
+PDF-arkistot: kirjaudu → **Asetukset → Tuo varmuuskopio** → Netlify-JSON.
 
 ## Blueprint
 
-`render.yaml` — Web Service + disk `/var/data`.
+`render.yaml` — Web Service + disk `/var/data`. Käyttää Node 22 + `node:sqlite` (ei better-sqlite3).
