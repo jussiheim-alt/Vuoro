@@ -1,13 +1,16 @@
 {
   "name": "vuoro",
   "private": true,
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx watch server/index.ts",
     "start": "NODE_ENV=production tsx server/index.ts",
-    "build": "echo 'static frontend — no build step'"
+    "build": "echo 'static frontend — no build step'",
+    "import-backup": "tsx server/importBackup.ts"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "better-sqlite3": "^11.7.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -16,6 +19,7 @@
     "tsx": "^4.19.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.12",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",

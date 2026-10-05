@@ -1,39 +1,10 @@
-# Vuoro — julkaisu Renderiin
+# Vuoro (esitelmät) — julkaisu Renderiin
 
-## Julkinen osoite
+## Kirjautuminen
 
-**https://vuoro.onrender.com**
+Render-palvelun URL (Dashboard → Vuoro → yläreunan linkki).
 
-(Frontend + API samassa palvelussa. Vanha Netlify-demo: https://vuoro.netlify.app)
-
-## Levy (pakollinen pysyvälle datalle)
-
-Jos palvelu luotiin ilman Blueprintiä, lisää levy käsin:
-
-1. Render → palvelu **vuoro** → **Disks**
-2. **Add Disk**
-3. Name: `vuoro-data`
-4. Mount Path: **`/var/data`**
-5. Size: 1 GB
-6. Save → redeploy
-
-Ilman levyä sovellus käynnistyy kyllä (`./data`-fallback), mutta SQLite nollautuu jokaisessa deployssa.
-
-## Jos deploy kaatuu (`tsx: not found`)
-
-`tsx` on `dependencies`-osiossa (ei vain dev). Manual Deploy → latest commit `main`ista.
-
-## Blueprint (`render.yaml`)
-
-1. Pushaa tämä repo GitHubiin (`main` tai merge PR)
-2. Render Dashboard → **New** → **Blueprint** → valitse `jussiheim-alt/Vuoro`
-3. `render.yaml` luo Web Servicen + 1 GB diskin (`/var/data`)
-4. Deployin jälkeen:
-   - Avaa https://vuoro.onrender.com
-   - Kirjaudu Firebase-tunnuksella (projekti `vuoro-app`) tai rekisteröidy
-   - Superadmin / omistaja: kutsu valmentajat **Hallinta**-näkymästä
-
-Jos palvelu `vuoro` on jo olemassa mutta suspendoituna: Dashboard → Resume → Manual Deploy → latest commit. Kytke GitHub-repo tähän repoon (Settings → Build & Deploy → connect `jussiheim-alt/Vuoro`).
+Ensimmäinen tunnus: `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
 
 ## Ympäristömuuttujat
 
@@ -41,27 +12,25 @@ Jos palvelu `vuoro` on jo olemassa mutta suspendoituna: Dashboard → Resume →
 |-----|--------|
 | `NODE_ENV` | `production` |
 | `DATA_DIR` | `/var/data` |
-| `APP_PUBLIC_URL` | `https://vuoro.onrender.com` |
-| `FIREBASE_PROJECT_ID` | `vuoro-app` |
-| `AUTH_DISABLED` | `false` (tuotanto) |
-| `SEED_DEMO` | `true` ensimmäisellä deploylla (luo TrainWithMarjo + Studio Flow) |
-| `SUPERADMIN_EMAIL` | sinun sähköposti — ensimmäinen Firebase-rekisteröityminen tällä osoitteella → superadmin |
+| `JWT_SECRET` | pitkä satunnainen |
+| `ADMIN_USERNAME` | esim. `jussi` |
+| `ADMIN_PASSWORD` | vahva salasana |
+| `ADMIN_NAME` | `Jussi Heimonen` |
 
-## Monikäyttäjyys
+## Levy
 
-- **Superadmin** — hallitsee kaikkia yrityksiä (tenanteja)
-- **Owner / coach** — yrityksen treenit, hyväksynnät, kutsut
-- **Customer** — varaukset, jonotus, sijaispyynnöt
-- Kutsulinkit: `/?invite=<token>`
+Disks → Mount Path **`/var/data`** (1 GB).
 
-Data (SQLite) säilyy levyllä redeployjen yli.
+## Varmuuskopio Netlifystä
 
-## Paikallinen kehitys
+Tiedosto muodossa `vuoro-backup` (kuten `vuoro-varmuuskopio_….json`):
 
-```bash
-npm install
-export AUTH_DISABLED=true SEED_DEMO=true
-npm run dev
-```
+1. Kirjaudu Render-Vuoroon adminina
+2. **Asetukset → Tuo varmuuskopio**
+3. Valitse JSON-tiedosto
 
-Avaa http://localhost:8788 — DEV-tilassa valitse yläpalkista Valmentaja / Asiakas.
+Tai laita tiedosto palvelimen `data/vuoro-varmuuskopio.json` -polkuun ennen ekaa käynnistystä (tyhjä kanta tuo sen automaattisesti).
+
+## Blueprint
+
+`render.yaml` — Web Service + disk `/var/data`.
