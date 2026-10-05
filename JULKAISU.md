@@ -23,13 +23,11 @@ Disks → Mount Path **`/var/data`** (1 GB).
 
 ## Varmuuskopio Netlifystä
 
-Tiedosto muodossa `vuoro-backup` (kuten `vuoro-varmuuskopio_….json`):
+Repo sisältää kevyen siemendatan (esitelmät/puhujat/teemat **ilman PDF-blobia**), joka tuodaan automaattisesti tyhjään kantaan.
 
-1. Kirjaudu Render-Vuoroon adminina
-2. **Asetukset → Tuo varmuuskopio**
-3. Valitse JSON-tiedosto
+PDF-arkistot: kirjaudu → **Asetukset → Tuo varmuuskopio** → valitse Netlify-tiedosto `vuoro-varmuuskopio_….json`.
 
-Tai laita tiedosto palvelimen `data/vuoro-varmuuskopio.json` -polkuun ennen ekaa käynnistystä (tyhjä kanta tuo sen automaattisesti).
+Jos Render kaatui exit 134: vanha deploy yritti ladata kaikki PDF:t bootissa. Uusi versio korjaa tämän — merge / redeploy.
 
 ## Blueprint
 

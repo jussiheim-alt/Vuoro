@@ -1,6 +1,6 @@
 node_modules/
 data/*
-!data/vuoro-varmuuskopio.json
+!data/vuoro-varmuuskopio-slim.json
 !data/.gitkeep
 *.sqlite
 *.sqlite-*
