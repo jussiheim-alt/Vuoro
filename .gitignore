@@ -1,5 +1,7 @@
 node_modules/
-data/
+data/*
+!data/vuoro-varmuuskopio.json
+!data/.gitkeep
 *.sqlite
 *.sqlite-*
 .DS_Store

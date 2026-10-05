@@ -14,14 +14,10 @@ function canUseDir(dir: string): boolean {
   }
 }
 
-/** Writable data directory. Falls back to ./data if DATA_DIR (e.g. /var/data) is not mounted. */
 export const dataDir = canUseDir(preferred)
   ? preferred
   : (() => {
-      console.warn(
-        `[vuoro] DATA_DIR=${preferred} ei ole kirjoitettavissa — käytetään ${fallback}. ` +
-          'Lisää Renderissä Disk mount pathilla /var/data, jotta data säilyy redeployjen yli.',
-      )
+      console.warn(`[vuoro] DATA_DIR=${preferred} ei kirjoitettavissa — käytetään ${fallback}`)
       fs.mkdirSync(fallback, { recursive: true })
       return fallback
     })()

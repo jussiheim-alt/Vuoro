@@ -1,45 +1,26 @@
-# Vuoro
+# Vuoro — sunnuntaiesitelmien suunnittelu (Vääksy)
 
-Monikäyttäjäinen ajanvaraus — treenit, varaukset, jonotus ja sijaisuus. Useita yrityksiä (tenantteja) samassa palvelussa.
+**Tuotanto (Render):** palvelun URL dashboardissa (esim. `https://vuoro-….onrender.com`)  
+**Vanha Netlify:** https://vuoro-vaaksy.netlify.app
 
-**Tuotanto (Render):** https://vuoro.onrender.com  
-**Vanha demosivu (Netlify):** https://vuoro.netlify.app
+## Käyttö Renderissä
 
-## Ominaisuudet
+1. Merge PR / deploy
+2. Environment:
+   - `ADMIN_USERNAME` + `ADMIN_PASSWORD` (min. 6)
+   - `JWT_SECRET` (pitkä satunnainen)
+   - `DATA_DIR=/var/data`
+   - Disk mount: `/var/data`
+3. Avaa palvelun URL → kirjaudu admin-tunnuksella
+4. Jos data ei tullut automaattisesti: **Asetukset → Tuo varmuuskopio** (`vuoro-backup` JSON)
 
-- Kalenteri (päivä / viikko / kuukausi) + tulevat treenit
-- Asiakasvaraukset, hyväksyntä, jonotus ja vahvistus
-- Valmentajan sijaisuuspyyntö + chat
-- Asiakkaan “en pääse” -sijaispyynnöt
-- Yrityskohtainen brändiväri ja logo
-- Kutsut (owner / coach) ja superadmin-hallinta
-
-## Pysyvä käyttö (Render)
-
-Katso **[JULKAISU.md](./JULKAISU.md)**. Lyhyesti:
-
-1. Render → Blueprint → tämä repo (`render.yaml`)
-2. **Starter** + persistent disk `/var/data`
-3. `APP_PUBLIC_URL=https://vuoro.onrender.com`, `FIREBASE_PROJECT_ID=vuoro-app`
-
-## Paikallinen kehitys
+## Paikallisesti
 
 ```bash
 npm install
-export AUTH_DISABLED=true SEED_DEMO=true
+export ADMIN_USERNAME=jussi ADMIN_PASSWORD=salasana123 JWT_SECRET=dev
+# varmuuskopio polussa data/vuoro-varmuuskopio.json
 npm run dev
 ```
 
 Avaa http://localhost:8788
-
-DEV-tilassa yläpalkin **Valmentaja** / **Asiakas** vaihtaa identiteettiä ilman Firebasea.
-
-## Rakenne
-
-```
-public/          # selain-UI (staattinen)
-server/          # Express API + SQLite
-render.yaml      # Render Blueprint
-```
-
-API: `/api/*` · terveys: `/api/health`
