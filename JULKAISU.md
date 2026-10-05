@@ -6,6 +6,10 @@
 
 (Frontend + API samassa palvelussa. Vanha Netlify-demo: https://vuoro.netlify.app)
 
+## Jos deploy kaatuu (`tsx: not found`)
+
+`tsx` on `dependencies`-osiossa (ei vain dev). Manual Deploy → latest commit `main`ista.
+
 ## Blueprint (`render.yaml`)
 
 1. Pushaa tämä repo GitHubiin (`main` tai merge PR)
