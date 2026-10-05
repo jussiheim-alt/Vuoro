@@ -6,6 +6,19 @@
 
 (Frontend + API samassa palvelussa. Vanha Netlify-demo: https://vuoro.netlify.app)
 
+## Levy (pakollinen pysyvälle datalle)
+
+Jos palvelu luotiin ilman Blueprintiä, lisää levy käsin:
+
+1. Render → palvelu **vuoro** → **Disks**
+2. **Add Disk**
+3. Name: `vuoro-data`
+4. Mount Path: **`/var/data`**
+5. Size: 1 GB
+6. Save → redeploy
+
+Ilman levyä sovellus käynnistyy kyllä (`./data`-fallback), mutta SQLite nollautuu jokaisessa deployssa.
+
 ## Jos deploy kaatuu (`tsx: not found`)
 
 `tsx` on `dependencies`-osiossa (ei vain dev). Manual Deploy → latest commit `main`ista.
