@@ -1,13 +1,31 @@
-node_modules/
-data/*
-!data/vuoro-varmuuskopio-slim.json
-!data/.gitkeep
-*.sqlite
-*.sqlite-*
-.DS_Store
-.env
-.env.*
-!.env.example
-dist/
+# Logs
+logs
 *.log
-.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Netlify local build artifacts
+.netlify/
+
+# Auto-synced Vuoro backups (may contain personal data)
+data/cloud-backups/
+data/runtime/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
