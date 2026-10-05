@@ -6,7 +6,7 @@ services:
     runtime: node
     plan: starter
     region: frankfurt
-    buildCommand: npm install --include=dev
+    buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
