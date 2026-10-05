@@ -24,8 +24,8 @@ export default defineConfig({
         description:
           'Sunnuntaisten esitelmien suunnittelu: suositus, WhatsApp-kutsu ja PDF-listat.',
         lang: 'fi',
-        theme_color: '#1B3D36',
-        background_color: '#1B3D36',
+        theme_color: '#0F3D34',
+        background_color: '#0F3D34',
         display: 'standalone',
         orientation: 'portrait-primary',
         start_url: '/',
