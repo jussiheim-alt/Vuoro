@@ -1,7 +1,6 @@
 {
   "name": "vuoro",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx watch server/index.ts",
@@ -12,10 +11,12 @@
     "better-sqlite3": "^11.7.0",
     "cors": "^2.8.5",
     "express": "^4.21.0",
-    "jose": "^5.9.0"
+    "jose": "^5.9.0",
+    "cookie-parser": "^1.4.7"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
+    "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.0",

@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { db, orgPublic, seedIfEmpty, type OrgRow, type UserRow } from './db.ts'
@@ -29,6 +30,7 @@ const app = express()
 app.set('trust proxy', 1)
 app.use(cors({ origin: true, credentials: true }))
 app.use(express.json({ limit: '2mb' }))
+app.use(cookieParser())
 
 const api = express.Router()
 api.use(optionalAuth)
@@ -50,7 +52,12 @@ function activeFrees(status: string) {
 }
 
 api.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'vuoro' })
+  res.json({
+    ok: true,
+    service: 'vuoro',
+    authDisabled:
+      process.env.AUTH_DISABLED === 'true' || process.env.AUTH_DISABLED === '1',
+  })
 })
 
 api.get('/public/orgs', (_req, res) => {
@@ -80,7 +87,8 @@ api.get('/public/orgs/:slug/sessions', (req, res) => {
   const from = String(req.query.from || '')
   const to = String(req.query.to || '')
   if (!from || !to) return err(res, 400, 'from ja to vaaditaan')
-  res.json(listSessions(o.id, from, to, null))
+  // Asiakkaat käyttävät tätä endpointtia — välitä viewer jotta myStatus/myBookingId toimii.
+  res.json(listSessions(o.id, from, to, req.auth?.user ?? null))
 })
 
 api.get('/public/sessions/:id/ics', (req, res) => {
@@ -304,14 +312,13 @@ api.delete('/sessions/:id', requireAuth, requireUser, (req, res) => {
   if (user.role !== 'superadmin' && row.org_id !== user.org_id) return err(res, 403, 'Ei oikeuksia')
   const scope = String(req.query.scope || '')
   if (scope === 'series' && row.series_id) {
-    db.prepare(`DELETE FROM sessions WHERE series_id = ? AND starts_at >= ?`).run(
-      row.series_id,
-      row.starts_at,
-    )
-  } else {
-    db.prepare(`DELETE FROM sessions WHERE id = ?`).run(req.params.id)
+    const result = db
+      .prepare(`DELETE FROM sessions WHERE series_id = ? AND starts_at >= ?`)
+      .run(row.series_id, row.starts_at)
+    return res.json({ deleted: result.changes })
   }
-  res.status(204).end()
+  db.prepare(`DELETE FROM sessions WHERE id = ?`).run(req.params.id)
+  res.json({ deleted: 1 })
 })
 
 api.get('/pending', requireAuth, requireUser, (req, res) => {
@@ -400,7 +407,8 @@ api.delete('/bookings/:id', requireAuth, requireUser, (req, res) => {
   if (!b) return err(res, 404, 'Varausta ei löydy')
   const coach = isCoachRole(user.role) || user.role === 'superadmin'
   if (!coach && b.user_id !== user.uid) return err(res, 403, 'Ei oikeuksia')
-  if (!coach) {
+  // Jonosta voi poistua aina; muuten cancelCutoffHours rajoittaa asiakasta.
+  if (!coach && b.status !== 'waitlisted') {
     const org = getOrgById(b.org_id)
     const cutoff = org?.cancel_cutoff_hours ?? 0
     if (cutoff > 0) {

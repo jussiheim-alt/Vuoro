@@ -85,7 +85,7 @@ export function serializeSession(
     substitute,
   }
 
-  if (opts.includeRegistrants && viewer && isCoachRole(viewer.role)) {
+  if (opts.includeRegistrants && viewer && (isCoachRole(viewer.role) || viewer.role === 'superadmin')) {
     out.registrants = db
       .prepare(
         `SELECT id, name, email, phone, status, source, user_id AS userId, created_at AS createdAt
@@ -114,17 +114,18 @@ export function getOrgById(id: string) {
   return db.prepare('SELECT * FROM organizations WHERE id = ?').get(id) as OrgRow | undefined
 }
 
-export function promoteWaitlist(sessionId: string) {
+export function promoteWaitlist(sessionId: string): string | null {
   const { bookedCount } = bookingCounts(sessionId)
   const cap = (
     db.prepare('SELECT capacity FROM sessions WHERE id = ?').get(sessionId) as { capacity: number } | undefined
   )?.capacity
-  if (cap == null || bookedCount >= cap) return
+  if (cap == null || bookedCount >= cap) return null
   const next = db
     .prepare(
       `SELECT id FROM bookings WHERE session_id = ? AND status = 'waitlisted' ORDER BY created_at ASC LIMIT 1`,
     )
     .get(sessionId) as { id: string } | undefined
-  if (!next) return
+  if (!next) return null
   db.prepare(`UPDATE bookings SET status = 'promoted' WHERE id = ?`).run(next.id)
+  return next.id
 }

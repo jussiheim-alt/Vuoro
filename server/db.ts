@@ -191,12 +191,12 @@ export function seedIfEmpty() {
   insUser.run('superadmin', 'admin@vuoro.local', 'Vuoro Admin', null, 'superadmin', null, now)
 
   const monday = nextWeekday(1)
-  const seriesId = crypto.randomUUID()
   const insSess = db.prepare(
     `INSERT INTO sessions (id, org_id, series_id, title, description, starts_at, ends_at, capacity,
       instructor_name, location_name, location_url, price, created_by, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
+  const series1 = crypto.randomUUID()
   for (let w = 0; w < 4; w++) {
     for (const dow of [1, 3]) {
       const day = new Date(monday)
@@ -207,7 +207,7 @@ export function seedIfEmpty() {
       insSess.run(
         crypto.randomUUID(),
         org1,
-        seriesId,
+        series1,
         'Aamujooga',
         'Rauhallinen aamuharjoitus kaikille tasoille.',
         day.toISOString(),
@@ -221,6 +221,35 @@ export function seedIfEmpty() {
         now,
       )
     }
+  }
+  // Studio Flow — muutama treeni ensi viikolla
+  const samples = [
+    { title: 'Flow Yoga', hour: 10, dayOffset: 0, cap: 16, price: '20 €', loc: 'Studio 1' },
+    { title: 'Pilates', hour: 17, dayOffset: 2, cap: 12, price: '22 €', loc: 'Studio 2' },
+    { title: 'Aamukävely', hour: 8, dayOffset: 4, cap: 20, price: null, loc: 'Puisto' },
+  ]
+  for (const s of samples) {
+    const day = new Date(monday)
+    day.setDate(monday.getDate() + s.dayOffset)
+    day.setHours(s.hour, 0, 0, 0)
+    const end = new Date(day)
+    end.setMinutes(end.getMinutes() + 60)
+    insSess.run(
+      crypto.randomUUID(),
+      org2,
+      null,
+      s.title,
+      null,
+      day.toISOString(),
+      end.toISOString(),
+      s.cap,
+      'Studio Flow Owner',
+      s.loc,
+      null,
+      s.price,
+      'owner-studio-flow',
+      now,
+    )
   }
   console.log('Seedattu demo-yritykset: trainwithmarjo, studio-flow')
 }

@@ -1235,6 +1235,15 @@ document.addEventListener('keydown', (e) => {
 
 /* ===================== INIT ===================== */
 (async function init() {
+  // Kun API on AUTH_DISABLED-tilassa, pakota selain DEV-identiteetteihin.
+  try {
+    const h = await fetch((api.base || '/api') + '/health').then((r) => r.json());
+    if (h && h.authDisabled && localStorage.getItem('vuoro_dev') !== '1') {
+      localStorage.setItem('vuoro_dev', '1');
+      location.reload();
+      return;
+    }
+  } catch (_) {}
   try { state.allOrgs = await api.orgs(); } catch {}
   renderTopbar();
   // Kutsulinkki ?invite=token → esikatselu + aseta org kutsun mukaan.
