@@ -1,0 +1,33 @@
+# Vuoro — monikäyttäjäinen ajanvaraus (Express + SQLite + staattinen frontend)
+# Free-tierillä ei ole pysyvää levyä — käytä vähintään Starter + Disk.
+services:
+  - type: web
+    name: vuoro
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm install --include=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: vuoro-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+      - key: APP_PUBLIC_URL
+        value: https://vuoro.onrender.com
+      - key: FIREBASE_PROJECT_ID
+        value: vuoro-app
+      # Paikallinen/seed-tila pois päältä tuotannossa (Firebase Auth).
+      - key: AUTH_DISABLED
+        value: "false"
+      # Valinnainen: seedaa demo-yritykset jos kanta tyhjä.
+      - key: SEED_DEMO
+        value: "true"
+      - key: SUPERADMIN_EMAIL
+        sync: false
