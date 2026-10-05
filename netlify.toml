@@ -1,0 +1,40 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/cloud-backup/meta"
+  to = "/.netlify/functions/cloud-backup?meta=1"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/cloud-backup"
+  to = "/.netlify/functions/cloud-backup"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/rooms/*"
+  to = "/.netlify/functions/rooms?path=:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/rooms"
+  to = "/.netlify/functions/rooms"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

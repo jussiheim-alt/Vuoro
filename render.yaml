@@ -1,18 +1,20 @@
-# Vuoro — esitelmäsuunnittelu (Express + node:sqlite)
+# Render Blueprint — Vuoro
+# https://render.com/docs/blueprint-spec
+#
+# After connecting the GitHub repo in Render Dashboard:
+#   1. Set env vars ADMIN_PASSWORD + SESSION_SECRET (generate a long random secret)
+#   2. Optional: ADMIN_USERNAME (default: vuoro)
+#   3. Attach the disk below so users + sync data survive redeploys
+
 services:
   - type: web
     name: vuoro
     runtime: node
     plan: starter
     region: frankfurt
-    buildCommand: npm install
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
-    healthCheckPath: /api/health
-    autoDeploy: true
-    disk:
-      name: vuoro-data
-      mountPath: /var/data
-      sizeGB: 1
+    healthCheckPath: /healthz
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -20,11 +22,13 @@ services:
         value: production
       - key: DATA_DIR
         value: /var/data
-      - key: JWT_SECRET
-        generateValue: true
       - key: ADMIN_USERNAME
         value: jussi
       - key: ADMIN_PASSWORD
         sync: false
-      - key: ADMIN_NAME
-        value: Jussi Heimonen
+      - key: SESSION_SECRET
+        generateValue: true
+    disk:
+      name: vuoro-data
+      mountPath: /var/data
+      sizeGB: 1
