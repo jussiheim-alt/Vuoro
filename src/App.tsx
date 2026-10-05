@@ -787,17 +787,19 @@ export default function App() {
     <AppLockGate lockNonce={lockNonce}>
     <div className="app-shell">
       <InstallPrompt />
-      <header className="brand-bar">
-        <div className="brand">
-          <div className="brand-mark">Vuoro</div>
-          <p className="brand-tag">
-            Suosittelee seuraavan sunnuntaiesitelmän teeman ja puhujan — ja avaa
-            valmiin WhatsApp-kutsun.
-          </p>
-        </div>
-      </header>
+      <div className="app-chrome">
+        <header className="brand-bar">
+          <div className="brand">
+            <p className="brand-eyebrow">Sunnuntaiesitelmät</p>
+            <div className="brand-mark">Vuoro</div>
+            <p className="brand-tag">
+              Suosittelee seuraavan sunnuntaiesitelmän teeman ja puhujan — ja avaa
+              valmiin WhatsApp-kutsun.
+            </p>
+          </div>
+        </header>
 
-      <nav className="nav-tabs" aria-label="Näkymät">
+        <nav className="nav-tabs" aria-label="Näkymät">
         {(
           [
             ['suositus', 'Suositus'],
@@ -821,7 +823,8 @@ export default function App() {
             {label}
           </button>
         ))}
-      </nav>
+        </nav>
+      </div>
 
       {tab === 'suositus' && (
         <section className="panel hero-rec">

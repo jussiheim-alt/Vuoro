@@ -25,7 +25,7 @@ export function loginPageHtml(opts = {}) {
   <title>Vuoro — kirjaudu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --pine: #0f3d34;
@@ -37,7 +37,7 @@ export function loginPageHtml(opts = {}) {
       --line: rgba(14, 28, 25, 0.12);
       --surface: rgba(245, 248, 249, 0.94);
       --font-display: "Fraunces", Georgia, serif;
-      --font-body: "Manrope", system-ui, sans-serif;
+      --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
     }
     * { box-sizing: border-box; }
     html, body { min-height: 100%; margin: 0; }
