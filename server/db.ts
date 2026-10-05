@@ -1,15 +1,43 @@
-import Database from 'better-sqlite3'
+import { DatabaseSync } from 'node:sqlite'
 import fs from 'node:fs'
 import path from 'node:path'
 import bcrypt from 'bcryptjs'
 import { dataDir, ensureDataDir } from './paths.ts'
 
 ensureDataDir()
-export const dbPath = path.join(dataDir, 'vuoro.sqlite')
+// Uusi tiedostonimi — vanha vuoro.sqlite levyllä saattoi olla rikkinäinen edellisistä kaatumisista.
+export const dbPath = path.join(dataDir, 'vuoro-esitelmat.sqlite')
 
-const db = new Database(dbPath)
-db.pragma('journal_mode = WAL')
-db.pragma('foreign_keys = ON')
+function openDb(): DatabaseSync {
+  for (const suffix of ['', '-wal', '-shm', '-journal']) {
+    // no-op; cleanup only on failure below
+    void suffix
+  }
+  try {
+    const database = new DatabaseSync(dbPath)
+    database.exec('PRAGMA foreign_keys = ON')
+    database.exec('PRAGMA journal_mode = DELETE')
+    const row = database.prepare('PRAGMA integrity_check').get() as { integrity_check?: string } | undefined
+    const ok = row && (row.integrity_check === 'ok' || Object.values(row)[0] === 'ok')
+    if (!ok) throw new Error(`integrity_check failed: ${JSON.stringify(row)}`)
+    return database
+  } catch (e) {
+    console.warn('[vuoro] SQLite avaus/tarkistus epäonnistui — luodaan uusi kanta:', e)
+    for (const suffix of ['', '-wal', '-shm', '-journal']) {
+      try {
+        fs.unlinkSync(dbPath + suffix)
+      } catch {
+        /* ignore */
+      }
+    }
+    const database = new DatabaseSync(dbPath)
+    database.exec('PRAGMA foreign_keys = ON')
+    database.exec('PRAGMA journal_mode = DELETE')
+    return database
+  }
+}
+
+const db = openDb()
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
@@ -98,6 +126,21 @@ CREATE TABLE IF NOT EXISTS pdf_archives (
 CREATE INDEX IF NOT EXISTS idx_lectures_date ON lectures(date);
 `)
 
+function runInTransaction(fn: () => void) {
+  db.exec('BEGIN')
+  try {
+    fn()
+    db.exec('COMMIT')
+  } catch (e) {
+    try {
+      db.exec('ROLLBACK')
+    } catch {
+      /* ignore */
+    }
+    throw e
+  }
+}
+
 export type UserRow = {
   id: string
   username: string
@@ -145,7 +188,7 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
     throw new Error('Tiedosto ei ole Vuoro-varmuuskopio (format ≠ vuoro-backup)')
   }
   const d = backup.data || {}
-  const tx = db.transaction(() => {
+  runInTransaction(() => {
     if (replace) {
       db.exec(`
         DELETE FROM lectures;
@@ -160,7 +203,7 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
 
     const insTheme = db.prepare(
       `INSERT OR REPLACE INTO themes (id, number, name, notes, disabled, last_used_at)
-       VALUES (@id, @number, @name, @notes, @disabled, @lastUsedAt)`,
+       VALUES ($id, $number, $name, $notes, $disabled, $lastUsedAt)`,
     )
     for (const t of (d.themes || []) as Record<string, unknown>[]) {
       insTheme.run({
@@ -177,8 +220,8 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
       `INSERT OR REPLACE INTO speakers
         (id, name, phone, congregation, outlines_json, notes, local_only, assistant,
          last_used_at, snooze_until, unavailable, unavailable_reason)
-       VALUES (@id, @name, @phone, @congregation, @outlines, @notes, @localOnly, @assistant,
-         @lastUsedAt, @snoozeUntil, @unavailable, @unavailableReason)`,
+       VALUES ($id, $name, $phone, $congregation, $outlines, $notes, $localOnly, $assistant,
+         $lastUsedAt, $snoozeUntil, $unavailable, $unavailableReason)`,
     )
     for (const s of (d.speakers || []) as Record<string, unknown>[]) {
       insSp.run({
@@ -199,7 +242,7 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
 
     const insChair = db.prepare(
       `INSERT OR REPLACE INTO chairpersons (id, name, phone, notes, last_used_at, also_reads)
-       VALUES (@id, @name, @phone, @notes, @lastUsedAt, @alsoReads)`,
+       VALUES ($id, $name, $phone, $notes, $lastUsedAt, $alsoReads)`,
     )
     for (const c of (d.chairpersons || []) as Record<string, unknown>[]) {
       insChair.run({
@@ -214,7 +257,7 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
 
     const insReader = db.prepare(
       `INSERT OR REPLACE INTO readers (id, name, phone, notes, last_used_at, also_reads)
-       VALUES (@id, @name, @phone, @notes, @lastUsedAt, @alsoReads)`,
+       VALUES ($id, $name, $phone, $notes, $lastUsedAt, $alsoReads)`,
     )
     for (const r of (d.readers || []) as Record<string, unknown>[]) {
       insReader.run({
@@ -230,7 +273,7 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
     const insLec = db.prepare(
       `INSERT OR REPLACE INTO lectures
         (id, date, theme_id, speaker_id, chairperson_id, reader_id, status, created_at, notes, event_kind, custom_title)
-       VALUES (@id, @date, @themeId, @speakerId, @chairpersonId, @readerId, @status, @createdAt, @notes, @eventKind, @customTitle)`,
+       VALUES ($id, $date, $themeId, $speakerId, $chairpersonId, $readerId, $status, $createdAt, $notes, $eventKind, $customTitle)`,
     )
     for (const l of (d.lectures || []) as Record<string, unknown>[]) {
       insLec.run({
@@ -260,7 +303,7 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
     const insPdf = db.prepare(
       `INSERT OR REPLACE INTO pdf_archives
         (id, created_at, kind, filename, from_date, to_date, entry_count, mime_type, blob_base64)
-       VALUES (@id, @createdAt, @kind, @filename, @fromDate, @toDate, @entryCount, @mimeType, @blobBase64)`,
+       VALUES ($id, $createdAt, $kind, $filename, $fromDate, $toDate, $entryCount, $mimeType, $blobBase64)`,
     )
     for (const p of (backup.pdfArchives || []) as Record<string, unknown>[]) {
       insPdf.run({
@@ -276,7 +319,6 @@ export function importBackup(backup: VuoroBackup, { replace = true } = {}) {
       })
     }
   })
-  tx()
   return {
     themes: (d.themes || []).length,
     speakers: (d.speakers || []).length,
@@ -389,7 +431,6 @@ export function autoImportBackupIfEmpty() {
       if (!fs.existsSync(file)) continue
       console.log(`Tuodaan varmuuskopio: ${file}`)
       const backup = JSON.parse(fs.readFileSync(file, 'utf8')) as VuoroBackup
-      // PDF-blobit jätetään pois bootissa (muisti). Tuo täysi JSON Asetuksista tarvittaessa.
       const safe: VuoroBackup = {
         ...backup,
         pdfArchives: Array.isArray(backup.pdfArchives)
