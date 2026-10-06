@@ -65,6 +65,7 @@ import {
 import { isRetiredOutline } from './lib/retiredOutlines'
 import { applySeedToData, fetchKierrosSeed } from './lib/seed'
 import { filterSpeakersByQuery } from './lib/speakerSearch'
+import { filterLecturesByHistoryQuery } from './lib/historySearch'
 import {
   applySyksy2026Roles,
   syksy2026RoleSummary,
@@ -142,6 +143,8 @@ export default function App() {
     () => initialUi.speakerQuery,
   )
   const deferredSpeakerQuery = useDeferredValue(speakerQuery)
+  const [historyQuery, setHistoryQuery] = useState('')
+  const deferredHistoryQuery = useDeferredValue(historyQuery)
   const [lockNonce, setLockNonce] = useState(0)
   const [syncRoomInput, setSyncRoomInput] = useState(() => getSyncRoomId() ?? '')
   const [recMode, setRecMode] = useState<RecommendMode>(
@@ -443,6 +446,29 @@ export default function App() {
   const filteredSpeakers = useMemo(
     () => filterSpeakersByQuery(speakerRank, deferredSpeakerQuery, data.themes),
     [speakerRank, deferredSpeakerQuery, data.themes],
+  )
+
+  const historyLecturesSorted = useMemo(
+    () => [...data.lectures].sort((a, b) => b.date.localeCompare(a.date)),
+    [data.lectures],
+  )
+
+  const filteredHistoryLectures = useMemo(
+    () =>
+      filterLecturesByHistoryQuery(historyLecturesSorted, deferredHistoryQuery, {
+        themes: data.themes,
+        speakers: data.speakers,
+        chairpersons: data.chairpersons,
+        readers: data.readers,
+      }),
+    [
+      historyLecturesSorted,
+      deferredHistoryQuery,
+      data.themes,
+      data.speakers,
+      data.chairpersons,
+      data.readers,
+    ],
   )
 
   function showToast(msg: string) {
@@ -1617,10 +1643,35 @@ export default function App() {
               Vie taulukko-PDF
             </button>
           </div>
+          {data.lectures.length > 0 && (
+            <div className="list-search">
+              <label className="sr-only" htmlFor="history-search">
+                Hae historiasta
+              </label>
+              <input
+                id="history-search"
+                type="search"
+                placeholder="Hae nimellä, teemalla tai jäsennyksen numerolla…"
+                value={historyQuery}
+                onChange={(e) => setHistoryQuery(e.target.value)}
+                autoComplete="off"
+              />
+              <span className="list-search-count">
+                {historyQuery.trim()
+                  ? `${filteredHistoryLectures.length} / ${data.lectures.length}`
+                  : `${data.lectures.length} esitelmää`}
+              </span>
+            </div>
+          )}
           {!data.lectures.length ? (
             <div className="empty-state">
               <strong>Ei tallennettuja esitelmiä</strong>
               Tuo historia Excelistä tai tallenna kysytty Suositus-näkymästä.
+            </div>
+          ) : !filteredHistoryLectures.length ? (
+            <div className="empty-state">
+              <strong>Ei osumia</strong>
+              Kokeile toista nimeä, teemaa tai jäsennyksen numeroa.
             </div>
           ) : (
             <div className="table-wrap">
@@ -1637,9 +1688,7 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...data.lectures]
-                    .sort((a, b) => b.date.localeCompare(a.date))
-                    .map((l) => (
+                  {filteredHistoryLectures.map((l) => (
                       <tr key={l.id}>
                         <td>{formatDateFi(l.date)}</td>
                         <td>{themeName(l.themeId)}</td>
