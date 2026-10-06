@@ -1,5 +1,18 @@
 import type { AppData, Speaker, Theme } from '../types'
+import { isRetiredOutline } from './retiredOutlines'
 import { recomputeLastUsed } from './recommend'
+
+function stripRetiredOutlines(outlines: string[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const raw of outlines) {
+    const o = String(raw).trim()
+    if (!o || isRetiredOutline(o) || seen.has(o)) continue
+    seen.add(o)
+    out.push(o)
+  }
+  return out
+}
 
 function mergeThemes(existing: Theme[], incoming: Theme[]): Theme[] {
   const byNum = new Map(
@@ -43,7 +56,16 @@ function mergeThemes(existing: Theme[], incoming: Theme[]): Theme[] {
   })
 }
 
-function mergeSpeakers(existing: Speaker[], incoming: Speaker[]): Speaker[] {
+/**
+ * Replace the active roster from the congregation PDF.
+ * Speakers who only appear in history stay for lookup but are off the roster
+ * (hidden from Puhujat / recommendations).
+ */
+function replaceSpeakersFromRoster(
+  existing: Speaker[],
+  incoming: Speaker[],
+  keepSpeakerIds: Set<string>,
+): Speaker[] {
   const byPhone = new Map(
     existing
       .filter((s) => s.phone)
@@ -57,6 +79,9 @@ function mergeSpeakers(existing: Speaker[], incoming: Speaker[]): Speaker[] {
     const prev =
       byPhone.get(neu.phone.replace(/\D/g, '')) ??
       byName.get(neu.name.toLowerCase())
+    const outlines = stripRetiredOutlines(
+      neu.outlines.length ? neu.outlines : (prev?.outlines ?? []),
+    )
     if (prev) {
       used.add(prev.id)
       out.push({
@@ -64,23 +89,32 @@ function mergeSpeakers(existing: Speaker[], incoming: Speaker[]): Speaker[] {
         name: neu.name || prev.name,
         phone: neu.phone || prev.phone,
         congregation: neu.congregation || prev.congregation,
-        outlines: neu.outlines.length ? neu.outlines : prev.outlines,
+        outlines,
         notes: neu.notes || prev.notes,
         localOnly: neu.localOnly,
         assistant: neu.assistant,
-        // Keep manual availability marks across PDF re-imports
         unavailable: prev.unavailable,
         unavailableReason: prev.unavailableReason,
         snoozeUntil: prev.snoozeUntil,
+        onRoster: true,
       })
     } else {
-      out.push(neu)
+      out.push({
+        ...neu,
+        outlines,
+        onRoster: true,
+      })
     }
   }
 
   for (const old of existing) {
     if (used.has(old.id)) continue
-    if (old.lastUsedAt) out.push(old)
+    if (!keepSpeakerIds.has(old.id)) continue
+    out.push({
+      ...old,
+      outlines: stripRetiredOutlines(old.outlines),
+      onRoster: false,
+    })
   }
 
   return out.sort((a, b) => a.name.localeCompare(b.name, 'fi'))
@@ -94,8 +128,11 @@ export function applyPdfListsToData(
   const themes = incoming.themes.length
     ? mergeThemes(data.themes, incoming.themes)
     : data.themes
+  const keepSpeakerIds = new Set(
+    data.lectures.map((l) => l.speakerId).filter(Boolean),
+  )
   const speakers = incoming.speakers.length
-    ? mergeSpeakers(data.speakers, incoming.speakers)
+    ? replaceSpeakersFromRoster(data.speakers, incoming.speakers, keepSpeakerIds)
     : data.speakers
 
   const themeIds = new Set(themes.map((t) => t.id))
@@ -110,4 +147,9 @@ export function applyPdfListsToData(
     speakers,
     lectures,
   })
+}
+
+/** Active speakers shown on Puhujat tab and used for recommendations. */
+export function rosterSpeakers(speakers: Speaker[]): Speaker[] {
+  return speakers.filter((s) => s.onRoster !== false)
 }
