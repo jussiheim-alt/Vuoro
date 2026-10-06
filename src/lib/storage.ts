@@ -3,7 +3,7 @@ import {
   isValidCongregationName,
   sanitizeCongregation,
 } from './congregations'
-import { applyRetiredOutlineFlags } from './retiredOutlines'
+import { applyRetiredOutlineFlags, isRetiredOutline } from './retiredOutlines'
 
 const STORAGE_KEY = 'vuoro-data-v2'
 
@@ -95,7 +95,9 @@ function normalizeSpeaker(raw: Partial<Speaker> & { name: string }): Speaker {
     name: raw.name,
     phone: raw.phone ?? '',
     congregation: existing || known,
-    outlines: Array.isArray(raw.outlines) ? raw.outlines.map(String) : [],
+    outlines: Array.isArray(raw.outlines)
+      ? raw.outlines.map(String).filter((o) => !isRetiredOutline(o))
+      : [],
     notes: raw.notes ?? '',
     localOnly: Boolean(raw.localOnly),
     assistant: Boolean(raw.assistant),
@@ -104,6 +106,7 @@ function normalizeSpeaker(raw: Partial<Speaker> & { name: string }): Speaker {
     unavailable: Boolean(raw.unavailable),
     unavailableReason:
       typeof raw.unavailableReason === 'string' ? raw.unavailableReason : '',
+    onRoster: raw.onRoster !== false,
   }
 }
 

@@ -144,6 +144,7 @@ export function parseSpeakersPdfText(text: string): Speaker[] {
         if (n < 1 || n > 200) continue
         o = String(n)
       }
+      if (isRetiredOutline(o)) continue
       if (!seen.has(o)) {
         seen.add(o)
         outlines.push(o)
@@ -167,9 +168,10 @@ export function parseSpeakersPdfText(text: string): Speaker[] {
       localOnly: role === 'Lä',
       assistant: role === 'Ap',
       lastUsedAt: null,
-    snoozeUntil: null,
-    unavailable: false,
-    unavailableReason: '',
+      snoozeUntil: null,
+      unavailable: false,
+      unavailableReason: '',
+      onRoster: true,
     })
   }
 

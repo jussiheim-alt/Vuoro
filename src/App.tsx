@@ -66,6 +66,7 @@ import { isRetiredOutline } from './lib/retiredOutlines'
 import { applySeedToData, fetchKierrosSeed } from './lib/seed'
 import { filterSpeakersByQuery } from './lib/speakerSearch'
 import { filterLecturesByHistoryQuery } from './lib/historySearch'
+import { applyPdfListsToData, rosterSpeakers } from './lib/mergeImports'
 import {
   applySyksy2026Roles,
   syksy2026RoleSummary,
@@ -286,6 +287,71 @@ export default function App() {
     })
   }, [])
 
+  // Replace active speaker roster from Kierros 6 PDF (09.02.2026). History-only
+  // speakers stay for lookup but leave the Puhujat list. Retired outlines stripped.
+  useEffect(() => {
+    const FLAG = 'vuoro-roster-kierros6-2026-02-09'
+    try {
+      if (localStorage.getItem(FLAG) === '1') return
+    } catch {
+      return
+    }
+    // Wait until local/cloud data exists so we can remapping history speakers.
+    if (!data.speakers.length && !data.lectures.length) return
+
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch(`/kierros6-speakers.json?t=${Date.now()}`, {
+          cache: 'no-store',
+        })
+        if (!res.ok || cancelled) return
+        const rows = (await res.json()) as Array<{
+          name: string
+          phone: string
+          congregation?: string
+          outlines?: string[]
+          notes?: string
+          localOnly?: boolean
+          assistant?: boolean
+        }>
+        if (!Array.isArray(rows) || rows.length < 20 || cancelled) return
+        try {
+          localStorage.setItem(FLAG, '1')
+        } catch {
+          /* ignore */
+        }
+        const incoming = rows.map((s) => ({
+          id: uid(),
+          name: s.name,
+          phone: s.phone,
+          congregation: s.congregation ?? '',
+          outlines: (s.outlines ?? []).map(String),
+          notes: s.notes ?? '',
+          localOnly: Boolean(s.localOnly),
+          assistant: Boolean(s.assistant),
+          lastUsedAt: null as string | null,
+          snoozeUntil: null as string | null,
+          unavailable: false,
+          unavailableReason: '',
+          onRoster: true as const,
+        }))
+        setData((prev) =>
+          applyPdfListsToData(prev, { themes: [], speakers: incoming }),
+        )
+        showToast(
+          `Puhujalista päivitetty kierros-PDF:stä (${rows.length} puhujaa listalla)`,
+        )
+      } catch {
+        /* seed missing — ignore */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.speakers.length, data.lectures.length])
+
   // Apply autumn 2026 PJ/lukija sample once (or when lists were empty)
   useEffect(() => {
     const flag = 'vuoro-syksy2026-roles-v1'
@@ -328,7 +394,7 @@ export default function App() {
     [data.themes],
   )
   const congregationOptions = useMemo(
-    () => uniqueCongregations(data.speakers),
+    () => uniqueCongregations(rosterSpeakers(data.speakers)),
     [data.speakers],
   )
 
@@ -353,7 +419,8 @@ export default function App() {
     recCongregation,
   ])
 
-  const hasLists = data.themes.length > 0 && data.speakers.length > 0
+  const hasLists =
+    data.themes.length > 0 && rosterSpeakers(data.speakers).length > 0
 
   function clearRecSkips() {
     setSkipThemes([])
@@ -442,7 +509,10 @@ export default function App() {
   }, [rec, lectureDate, data.settings.messageTemplate, data.settings.eventName])
 
   const themeRank = useMemo(() => rankThemes(data.themes), [data.themes])
-  const speakerRank = useMemo(() => rankSpeakers(data.speakers), [data.speakers])
+  const speakerRank = useMemo(
+    () => rankSpeakers(rosterSpeakers(data.speakers)),
+    [data.speakers],
+  )
   const filteredSpeakers = useMemo(
     () => filterSpeakersByQuery(speakerRank, deferredSpeakerQuery, data.themes),
     [speakerRank, deferredSpeakerQuery, data.themes],
@@ -684,7 +754,7 @@ export default function App() {
   function addSpeaker(speaker: Omit<Speaker, 'id'>) {
     setData((prev) => ({
       ...prev,
-      speakers: [...prev.speakers, { ...speaker, id: uid() }].sort((a, b) =>
+      speakers: [...prev.speakers, { ...speaker, id: uid(), onRoster: true }].sort((a, b) =>
         a.name.localeCompare(b.name, 'fi'),
       ),
     }))
@@ -1435,9 +1505,12 @@ export default function App() {
               type="button"
               className="btn btn-ghost"
               onClick={() =>
-                downloadText('puhujat.csv', speakersToCsv(data.speakers))
+                downloadText(
+                  'puhujat.csv',
+                  speakersToCsv(rosterSpeakers(data.speakers)),
+                )
               }
-              disabled={!data.speakers.length}
+              disabled={!rosterSpeakers(data.speakers).length}
             >
               Vie CSV
             </button>
@@ -1448,7 +1521,7 @@ export default function App() {
               }}
             />
           </div>
-          {!data.speakers.length ? (
+          {!rosterSpeakers(data.speakers).length ? (
             <div className="empty-state">
               <strong>Ei puhujia vielä</strong>
               Lataa lista tai lisää ensimmäinen puhuja.
