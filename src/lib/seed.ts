@@ -1,5 +1,5 @@
 import type { AppData, Lecture, LectureStatus, Speaker, Theme } from '../types'
-import { applyRetiredOutlineFlags } from './retiredOutlines'
+import { applyRetiredOutlineFlags, isRetiredOutline } from './retiredOutlines'
 import { todayISO, uid } from './storage'
 
 export type KierrosSeed = {
@@ -70,14 +70,17 @@ export function seedToAppLists(seed: KierrosSeed): {
     name: s.name,
     phone: s.phone,
     congregation: s.congregation ?? '',
-    outlines: (s.outlines ?? []).map(String),
+    outlines: (s.outlines ?? [])
+      .map(String)
+      .filter((o) => !isRetiredOutline(o)),
     notes: s.notes ?? '',
     localOnly: Boolean(s.localOnly),
     assistant: Boolean(s.assistant),
     lastUsedAt: s.lastUsedAt ?? null,
-  snoozeUntil: null,
-  unavailable: false,
-  unavailableReason: '',
+    snoozeUntil: null,
+    unavailable: false,
+    unavailableReason: '',
+    onRoster: true,
   }))
 
   return { themes, speakers }

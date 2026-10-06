@@ -27,6 +27,11 @@ export type Speaker = {
   unavailable: boolean
   /** Free-text reason shown with the unavailable mark. */
   unavailableReason: string
+  /**
+   * When false, speaker is kept only for history lookup (not on Puhujat list /
+   * recommendations). Missing/undefined means on roster (legacy backups).
+   */
+  onRoster?: boolean
 }
 
 /** Local chairperson (puheenjohtaja) or reader (lukija). */

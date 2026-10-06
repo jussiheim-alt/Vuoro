@@ -1,6 +1,6 @@
 import { useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react'
 import type { AppData } from '../types'
-import { applyPdfListsToData } from '../lib/mergeImports'
+import { applyPdfListsToData, rosterSpeakers } from '../lib/mergeImports'
 import {
   applyVarauslistaToData,
   parseVarauslistaBuffer,
@@ -18,7 +18,7 @@ type Props = {
 export function ImportAndFilters({ data, setData, showToast }: Props) {
   const [busy, setBusy] = useState(false)
   const congregations = useMemo(
-    () => uniqueCongregations(data.speakers),
+    () => uniqueCongregations(rosterSpeakers(data.speakers)),
     [data.speakers],
   )
 
@@ -113,7 +113,8 @@ export function ImportAndFilters({ data, setData, showToast }: Props) {
         <h2 className="section-title">Tuonti & suodattimet</h2>
         <p className="lede">
           Kun PDF-listat tai Excel-varauslista päivittyvät, tuo ne tähän.
-          Historia säilyy mahdollisuuksien mukaan.
+          Puhuja-PDF korvaa kierroslistan (vain seurakunnittain listatut).
+          Historia säilyy; listalta poistuneet jäävät vain historian nimiksi.
         </p>
       </div>
 

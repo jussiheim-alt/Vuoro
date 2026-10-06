@@ -255,6 +255,7 @@ export function CalendarView({
       snoozeUntil: null,
       unavailable: false,
       unavailableReason: '',
+      onRoster: true,
     }
     setData((prev) => ({
       ...prev,
