@@ -94,19 +94,8 @@ a {
 }
 
 .app-chrome {
-  position: sticky;
-  top: 0;
-  z-index: 40;
   margin: 0 0 1.25rem;
   padding: 0.65rem 0 0.85rem;
-  background: linear-gradient(
-    180deg,
-    rgba(242, 246, 247, 0.92) 0%,
-    rgba(232, 238, 240, 0.88) 70%,
-    rgba(232, 238, 240, 0) 100%
-  );
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
