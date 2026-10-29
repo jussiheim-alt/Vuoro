@@ -151,9 +151,24 @@ export function CalendarView({
   }, [draft, themesSorted, selectedSpeaker])
 
   const filteredSpeakers = useMemo(() => {
-    if (!draft || draft.eventKind !== 'talk') return speakersSorted
-    return speakersForTheme(speakersSorted, selectedTheme, draft.speakerId)
+    // New picks: PDF roster only. Keep the current speaker even if history-only.
+    const pool = speakersSorted.filter(
+      (s) => s.onRoster !== false || s.id === draft?.speakerId,
+    )
+    if (!draft || draft.eventKind !== 'talk') return pool
+    return speakersForTheme(pool, selectedTheme, draft.speakerId)
   }, [draft, speakersSorted, selectedTheme])
+
+  function updateSelectedSpeakerCongregation(congregation: string) {
+    if (!draft?.speakerId) return
+    const speakerId = draft.speakerId
+    setData((prev) => ({
+      ...prev,
+      speakers: prev.speakers.map((s) =>
+        s.id === speakerId ? { ...s, congregation: congregation.trim() } : s,
+      ),
+    }))
+  }
 
   function themeName(id: string) {
     const t = data.themes.find((x) => x.id === id)
@@ -577,6 +592,31 @@ export function CalendarView({
                           Ei puhujia joilla tämä jäsennys on listalla.
                         </p>
                       ) : null}
+                      <datalist id="cal-congregation-options">
+                        {congregationOptions.map((c) => (
+                          <option key={c} value={c} />
+                        ))}
+                      </datalist>
+                      {selectedSpeaker && !newSpeakerOpen ? (
+                        <div className="field" style={{ marginTop: '0.55rem' }}>
+                          <label htmlFor="cal-speaker-cong">Seurakunta</label>
+                          <input
+                            id="cal-speaker-cong"
+                            list="cal-congregation-options"
+                            value={selectedSpeaker.congregation}
+                            onChange={(e) =>
+                              updateSelectedSpeakerCongregation(e.target.value)
+                            }
+                            placeholder="esim. Kouvola"
+                            autoComplete="off"
+                          />
+                          <p className="hint">
+                            {selectedSpeaker.onRoster === false
+                              ? 'Vierailija (ei PDF-listalla). Seurakunta näkyy silti PDF-ohjelmassa.'
+                              : 'Näkyy PDF-listalla puhujan nimen alla.'}
+                          </p>
+                        </div>
+                      ) : null}
                       <div className="actions" style={{ marginTop: '0.45rem' }}>
                         <button
                           type="button"
@@ -616,11 +656,6 @@ export function CalendarView({
                               placeholder="esim. Kouvola"
                               autoComplete="off"
                             />
-                            <datalist id="cal-congregation-options">
-                              {congregationOptions.map((c) => (
-                                <option key={c} value={c} />
-                              ))}
-                            </datalist>
                             <p className="hint">
                               Näkyy PDF-listalla puhujan nimen alla.
                             </p>

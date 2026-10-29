@@ -290,7 +290,8 @@ export default function App() {
   // Replace active speaker roster from Kierros 6 PDF (09.02.2026). History-only
   // speakers stay for lookup but leave the Puhujat list. Retired outlines stripped.
   useEffect(() => {
-    const FLAG = 'vuoro-roster-kierros6-2026-02-09'
+    // Bumped so main-branch installs that never ran the roster migration still apply it.
+    const FLAG = 'vuoro-roster-kierros6-2026-10-29'
     try {
       if (localStorage.getItem(FLAG) === '1') return
     } catch {
