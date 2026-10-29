@@ -111,6 +111,7 @@ export function passesSpeakerFilters(
   }
   if (speaker.snoozeUntil && speaker.snoozeUntil > asOf) return false
   if (speaker.unavailable) return false
+  if (speaker.onRoster === false) return false
   return true
 }
 
