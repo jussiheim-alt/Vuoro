@@ -429,7 +429,12 @@ export function CalendarView({
                       </div>
                     </>
                   ) : isConventionKind(kind) ? (
-                    <strong>{EVENT_KIND_LABEL[kind]}</strong>
+                    <>
+                      <strong>{EVENT_KIND_LABEL[kind]}</strong>
+                      {(primary.customTitle || '').trim() ? (
+                        <div className="hint">{title}</div>
+                      ) : null}
+                    </>
                   ) : (
                     <>
                       <strong>{EVENT_KIND_LABEL[kind]}</strong>
