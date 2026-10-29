@@ -222,7 +222,7 @@ export function PdfListsView({ data, showToast }: Props) {
             onChange={(e) => setKind(e.target.value as SchedulePdfKind)}
           >
             <option value="ilmoitustaululle">Ilmoitustaululle (ei puhelimia)</option>
-            <option value="PJ">PJ-lista (puheenjohtajien puhelimet)</option>
+            <option value="PJ">PJ-lista (puhujien puhelimet)</option>
           </select>
         </div>
         <div className="field">
