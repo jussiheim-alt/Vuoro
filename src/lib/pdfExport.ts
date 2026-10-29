@@ -123,8 +123,8 @@ async function createDoc(): Promise<jsPDF> {
 
 /**
  * Build notice-board or PJ schedule PDF matching the Vääksy sample layout:
- * left: date + theme; right: speaker + congregation (+ speaker phone on PJ list);
- * indented puheenjohtaja / lukija rows.
+ * left: date + theme; right: speaker + congregation;
+ * indented puheenjohtaja / lukija; speaker phone on PJ row (PJ list only).
  */
 export async function buildCongregationSchedulePdf(
   data: AppData,
@@ -227,15 +227,7 @@ export async function buildCongregationSchedulePdf(
       doc.text(themeLines[i]!, themeX, startY + i * lineH)
     }
 
-    let rightLines = speakerName ? 1 : 0
-    if (cong) {
-      doc.text(cong, rightX, startY + rightLines * lineH)
-      rightLines += 1
-    }
-    if (speakerPhone) {
-      doc.text(speakerPhone, rightX, startY + rightLines * lineH)
-      rightLines += 1
-    }
+    if (cong) doc.text(cong, rightX, startY + lineH)
 
     if (isDateTitleOnlyKind(kind)) {
       // Date + event title only
@@ -244,14 +236,14 @@ export async function buildCongregationSchedulePdf(
     }
 
     const usedLines =
-      kind === 'talk'
-        ? Math.max(themeLines.length, Math.max(rightLines, 1))
-        : Math.max(themeLines.length, 1)
+      kind === 'talk' ? Math.max(themeLines.length, 2) : Math.max(themeLines.length, 1)
     y = startY + usedLines * lineH
 
     if (chairName || kind === 'talk' || isSpecialProgramKind(kind)) {
       doc.text(chairLabel, themeX, y)
       if (chairName) doc.text(chairName, nameColX, y)
+      // Speaker phone on the chairperson row (PJ list) — no extra gap under theme.
+      if (speakerPhone) doc.text(speakerPhone, rightX, y)
       y += lineH
     }
 
