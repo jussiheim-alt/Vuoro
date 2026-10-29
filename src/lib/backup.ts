@@ -83,7 +83,8 @@ function normalizeLecture(raw: Partial<Lecture> & { id: string }): Lecture {
     eventKind !== 'circuit_convention' &&
     eventKind !== 'regional_convention' &&
     eventKind !== 'circuit_week' &&
-    eventKind !== 'memorial'
+    eventKind !== 'memorial' &&
+    eventKind !== 'other'
   ) {
     eventKind = /kierrosviikko/i.test(notes)
       ? 'circuit_week'
