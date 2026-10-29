@@ -75,7 +75,7 @@ export type Lecture = {
   notes: string
   /** Defaults to "talk" when missing (older backups). */
   eventKind: LectureEventKind
-  /** Free-text title for Kierrosviikko / Muistojuhla. */
+  /** Free-text theme/title for conventions, circuit week, and memorial. */
   customTitle: string
 }
 

@@ -69,8 +69,9 @@ export function needsReader(kind: LectureEventKind): boolean {
   return kind === 'talk'
 }
 
+/** Free-text theme/title for conventions, circuit week, and memorial. */
 export function needsCustomTitle(kind: LectureEventKind): boolean {
-  return isSpecialProgramKind(kind)
+  return kind !== 'talk'
 }
 
 /** Themes a speaker can give (active themes only unless already selected). */
@@ -115,9 +116,6 @@ export function scheduleTitleForLecture(
 ): string {
   const kind = lectureEventKind(lec)
   if (kind === 'talk') return themeName?.trim() || '—'
-  if (isSpecialProgramKind(kind)) {
-    const custom = (lec.customTitle || '').trim()
-    return custom || EVENT_KIND_PDF_TITLE[kind]
-  }
-  return EVENT_KIND_PDF_TITLE[kind]
+  const custom = (lec.customTitle || '').trim()
+  return custom || EVENT_KIND_PDF_TITLE[kind]
 }
