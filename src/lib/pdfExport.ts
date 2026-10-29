@@ -123,7 +123,7 @@ async function createDoc(): Promise<jsPDF> {
 
 /**
  * Build notice-board or PJ schedule PDF matching the Vääksy sample layout:
- * left: date + theme; right: speaker + congregation (+ phone on PJ list);
+ * left: date + theme; right: speaker + congregation (+ speaker phone on PJ list);
  * indented puheenjohtaja / lukija rows.
  */
 export async function buildCongregationSchedulePdf(
@@ -209,9 +209,10 @@ export async function buildCongregationSchedulePdf(
         ? (chair?.name ?? '')
         : ''
     const readerName = kind === 'talk' ? (reader?.name ?? '') : ''
-    const chairPhone =
-      showPhones && chairName && chair?.phone
-        ? chair.phone.replace(/\s/g, '')
+    // PJ-lista shows the speaker's phone (not the chairperson's).
+    const speakerPhone =
+      showPhones && kind === 'talk' && speaker?.phone
+        ? speaker.phone.replace(/\s/g, '')
         : ''
 
     const themeLines = doc.splitTextToSize(themeTitle, themeWrapW) as string[]
@@ -226,7 +227,15 @@ export async function buildCongregationSchedulePdf(
       doc.text(themeLines[i]!, themeX, startY + i * lineH)
     }
 
-    if (cong) doc.text(cong, rightX, startY + lineH)
+    let rightLines = speakerName ? 1 : 0
+    if (cong) {
+      doc.text(cong, rightX, startY + rightLines * lineH)
+      rightLines += 1
+    }
+    if (speakerPhone) {
+      doc.text(speakerPhone, rightX, startY + rightLines * lineH)
+      rightLines += 1
+    }
 
     if (isDateTitleOnlyKind(kind)) {
       // Date + event title only
@@ -235,13 +244,14 @@ export async function buildCongregationSchedulePdf(
     }
 
     const usedLines =
-      kind === 'talk' ? Math.max(themeLines.length, 2) : Math.max(themeLines.length, 1)
+      kind === 'talk'
+        ? Math.max(themeLines.length, Math.max(rightLines, 1))
+        : Math.max(themeLines.length, 1)
     y = startY + usedLines * lineH
 
     if (chairName || kind === 'talk' || isSpecialProgramKind(kind)) {
       doc.text(chairLabel, themeX, y)
       if (chairName) doc.text(chairName, nameColX, y)
-      if (chairPhone) doc.text(chairPhone, rightX, y)
       y += lineH
     }
 
