@@ -1,4 +1,11 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react'
 import { createPortal } from 'react-dom'
 import type {
   AppData,
@@ -28,6 +35,7 @@ import {
   readerForChairperson,
   recomputeLastUsed,
   sundaysCoveringLectures,
+  uniqueCongregations,
 } from '../lib/recommend'
 import { formatDateFi, themeLabel, uid } from '../lib/storage'
 
@@ -77,6 +85,19 @@ export function CalendarView({
   const [newSpeakerName, setNewSpeakerName] = useState('')
   const [newSpeakerPhone, setNewSpeakerPhone] = useState('')
   const [newSpeakerCong, setNewSpeakerCong] = useState('')
+  const newSpeakerFormRef = useRef<HTMLDivElement | null>(null)
+  const congregationOptions = useMemo(
+    () => uniqueCongregations(data.speakers),
+    [data.speakers],
+  )
+
+  useEffect(() => {
+    if (!newSpeakerOpen) return
+    newSpeakerFormRef.current?.scrollIntoView({
+      block: 'nearest',
+      behavior: 'smooth',
+    })
+  }, [newSpeakerOpen])
 
   const byDate = useMemo(() => {
     const map = new Map<string, Lecture[]>()
@@ -567,28 +588,53 @@ export function CalendarView({
                         </button>
                       </div>
                       {newSpeakerOpen ? (
-                        <div className="stack" style={{ marginTop: '0.55rem' }}>
+                        <div
+                          ref={newSpeakerFormRef}
+                          className="stack new-speaker-form"
+                          style={{ marginTop: '0.55rem' }}
+                        >
                           <div className="field">
-                            <label>Nimi</label>
+                            <label htmlFor="cal-new-speaker-name">Nimi</label>
                             <input
+                              id="cal-new-speaker-name"
                               value={newSpeakerName}
                               onChange={(e) => setNewSpeakerName(e.target.value)}
                               placeholder="Etunimi Sukunimi"
+                              autoComplete="name"
                             />
                           </div>
                           <div className="field">
-                            <label>Puhelin</label>
+                            <label htmlFor="cal-new-speaker-cong">
+                              Seurakunta
+                            </label>
                             <input
+                              id="cal-new-speaker-cong"
+                              list="cal-congregation-options"
+                              value={newSpeakerCong}
+                              onChange={(e) => setNewSpeakerCong(e.target.value)}
+                              placeholder="esim. Kouvola"
+                              autoComplete="off"
+                            />
+                            <datalist id="cal-congregation-options">
+                              {congregationOptions.map((c) => (
+                                <option key={c} value={c} />
+                              ))}
+                            </datalist>
+                            <p className="hint">
+                              Näkyy PDF-listalla puhujan nimen alla.
+                            </p>
+                          </div>
+                          <div className="field">
+                            <label htmlFor="cal-new-speaker-phone">
+                              Puhelin
+                            </label>
+                            <input
+                              id="cal-new-speaker-phone"
                               value={newSpeakerPhone}
                               onChange={(e) => setNewSpeakerPhone(e.target.value)}
                               placeholder="040..."
-                            />
-                          </div>
-                          <div className="field">
-                            <label>Seurakunta</label>
-                            <input
-                              value={newSpeakerCong}
-                              onChange={(e) => setNewSpeakerCong(e.target.value)}
+                              inputMode="tel"
+                              autoComplete="tel"
                             />
                           </div>
                           <div className="actions">
