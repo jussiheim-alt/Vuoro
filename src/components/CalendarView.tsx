@@ -11,11 +11,13 @@ import {
   EVENT_KIND_LABEL,
   EVENT_KIND_OPTIONS,
   isConventionKind,
+  isDateTitleOnlyKind,
   lectureEventKind,
   needsChairperson,
   needsCustomTitle,
   needsReader,
   needsSpeakerAndTheme,
+  requiresCustomTitle,
   scheduleTitleForLecture,
   speakersForTheme,
   themesForSpeaker,
@@ -285,12 +287,16 @@ export function CalendarView({
       showToast('Valitse puheenjohtaja')
       return
     }
+    const customTitle = needsCustomTitle(kind) ? draft.customTitle.trim() : ''
+    if (requiresCustomTitle(kind) && !customTitle) {
+      showToast('Kirjoita tapahtuman nimi')
+      return
+    }
 
     const speakerId = needsSpeakerAndTheme(kind) ? draft.speakerId : ''
     const themeId = needsSpeakerAndTheme(kind) ? draft.themeId : ''
     const chairpersonId = needsChairperson(kind) ? draft.chairpersonId || null : null
     const readerId = needsReader(kind) ? draft.readerId || null : null
-    const customTitle = needsCustomTitle(kind) ? draft.customTitle.trim() : ''
 
     setData((prev) => {
       let next = prev
@@ -428,6 +434,8 @@ export function CalendarView({
                         {roleName(primary.readerId)}
                       </div>
                     </>
+                  ) : kind === 'other' ? (
+                    <strong>{title}</strong>
                   ) : isConventionKind(kind) ? (
                     <>
                       <strong>{EVENT_KIND_LABEL[kind]}</strong>
@@ -621,7 +629,11 @@ export function CalendarView({
 
                 {needsCustomTitle(draft.eventKind) ? (
                   <div className="field">
-                    <label htmlFor="cal-custom-title">Teeman nimi</label>
+                    <label htmlFor="cal-custom-title">
+                      {draft.eventKind === 'other'
+                        ? 'Tapahtuman nimi'
+                        : 'Teeman nimi'}
+                    </label>
                     <input
                       id="cal-custom-title"
                       value={draft.customTitle}
@@ -629,26 +641,31 @@ export function CalendarView({
                         setDraft({ ...draft, customTitle: e.target.value })
                       }
                       placeholder={
-                        draft.eventKind === 'memorial'
-                          ? 'esim. Muistojuhlapuhe'
-                          : draft.eventKind === 'circuit_week'
-                            ? 'esim. Kierrosviikon teema'
-                            : draft.eventKind === 'regional_convention'
-                              ? 'esim. Aluekonventin teema'
-                              : 'esim. Kierroskonventin teema'
+                        draft.eventKind === 'other'
+                          ? 'esim. Konventtisalin vihkiäiset'
+                          : draft.eventKind === 'memorial'
+                            ? 'esim. Muistojuhlapuhe'
+                            : draft.eventKind === 'circuit_week'
+                              ? 'esim. Kierrosviikon teema'
+                              : draft.eventKind === 'regional_convention'
+                                ? 'esim. Aluekonventin teema'
+                                : 'esim. Kierroskonventin teema'
                       }
+                      required={draft.eventKind === 'other'}
                     />
                     <p className="hint">
-                      Vapaaehtoinen. Kirjoitettu teema näkyy PDF-listalla;
-                      tyhjänä käytetään tyypin nimeä.
+                      {draft.eventKind === 'other'
+                        ? 'Pakollinen. Nimi näkyy PDF-listalla sellaisenaan.'
+                        : 'Vapaaehtoinen. Kirjoitettu teema näkyy PDF-listalla; tyhjänä käytetään tyypin nimeä.'}
                     </p>
                   </div>
                 ) : null}
 
-                {isConventionKind(draft.eventKind) ? (
+                {isDateTitleOnlyKind(draft.eventKind) ? (
                   <p className="hint">
-                    Konventille merkitään päivämäärä ja tarvittaessa teema.
-                    PDF-listalle ei tule puhujaa, puheenjohtajaa eikä lukijaa.
+                    {draft.eventKind === 'other'
+                      ? 'Erikoistapahtumalle merkitään päivämäärä ja nimi. PDF-listalle ei tule puhujaa, puheenjohtajaa eikä lukijaa.'
+                      : 'Konventille merkitään päivämäärä ja tarvittaessa teema. PDF-listalle ei tule puhujaa, puheenjohtajaa eikä lukijaa.'}
                   </p>
                 ) : null}
 

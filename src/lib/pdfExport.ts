@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import type { AppData, Lecture } from '../types'
 import {
-  isConventionKind,
+  isDateTitleOnlyKind,
   isSpecialProgramKind,
   lectureEventKind,
   scheduleTitleForLecture,
@@ -228,7 +228,7 @@ export async function buildCongregationSchedulePdf(
 
     if (cong) doc.text(cong, rightX, startY + lineH)
 
-    if (isConventionKind(kind)) {
+    if (isDateTitleOnlyKind(kind)) {
       // Date + event title only
       y = startY + Math.max(themeLines.length, 1) * lineH + entryGap
       continue

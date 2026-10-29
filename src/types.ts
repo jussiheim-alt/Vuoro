@@ -62,6 +62,8 @@ export type LectureEventKind =
   | 'regional_convention'
   | 'circuit_week'
   | 'memorial'
+  /** Free-named special event (e.g. hall dedication). */
+  | 'other'
 
 export type Lecture = {
   id: string
@@ -75,7 +77,7 @@ export type Lecture = {
   notes: string
   /** Defaults to "talk" when missing (older backups). */
   eventKind: LectureEventKind
-  /** Free-text theme/title for conventions, circuit week, and memorial. */
+  /** Free-text theme/title for special events; required name for `other`. */
   customTitle: string
 }
 

@@ -11,12 +11,12 @@ export const EVENT_KIND_LABEL: Record<LectureEventKind, string> = {
   regional_convention: 'Aluekonventti',
   circuit_week: 'Kierrosviikko',
   memorial: 'Muistojuhla',
+  other: 'Muu erikoistapahtuma',
 }
 
-/** Uppercase title used on PDF schedule rows. */
-export const EVENT_KIND_PDF_TITLE: Record<
-  Exclude<LectureEventKind, 'talk'>,
-  string
+/** Uppercase title used on PDF schedule rows when no custom title is set. */
+export const EVENT_KIND_PDF_TITLE: Partial<
+  Record<Exclude<LectureEventKind, 'talk'>, string>
 > = {
   circuit_convention: 'KIERROSKONVENTTI',
   regional_convention: 'ALUEKONVENTTI',
@@ -33,6 +33,7 @@ export const EVENT_KIND_OPTIONS: Array<{
   { id: 'regional_convention', label: 'Aluekonventti' },
   { id: 'circuit_week', label: 'Kierrosviikko' },
   { id: 'memorial', label: 'Muistojuhla' },
+  { id: 'other', label: 'Muu erikoistapahtuma' },
 ]
 
 export function isLectureEventKind(raw: unknown): raw is LectureEventKind {
@@ -41,7 +42,8 @@ export function isLectureEventKind(raw: unknown): raw is LectureEventKind {
     raw === 'circuit_convention' ||
     raw === 'regional_convention' ||
     raw === 'circuit_week' ||
-    raw === 'memorial'
+    raw === 'memorial' ||
+    raw === 'other'
   )
 }
 
@@ -57,6 +59,11 @@ export function isSpecialProgramKind(kind: LectureEventKind): boolean {
   return kind === 'circuit_week' || kind === 'memorial'
 }
 
+/** Date + title only on PDF (no speaker / PJ / reader). */
+export function isDateTitleOnlyKind(kind: LectureEventKind): boolean {
+  return isConventionKind(kind) || kind === 'other'
+}
+
 export function needsSpeakerAndTheme(kind: LectureEventKind): boolean {
   return kind === 'talk'
 }
@@ -69,9 +76,13 @@ export function needsReader(kind: LectureEventKind): boolean {
   return kind === 'talk'
 }
 
-/** Free-text theme/title for conventions, circuit week, and memorial. */
+/** Free-text theme/title for all non-talk events; required for `other`. */
 export function needsCustomTitle(kind: LectureEventKind): boolean {
   return kind !== 'talk'
+}
+
+export function requiresCustomTitle(kind: LectureEventKind): boolean {
+  return kind === 'other'
 }
 
 /** Themes a speaker can give (active themes only unless already selected). */
@@ -117,5 +128,6 @@ export function scheduleTitleForLecture(
   const kind = lectureEventKind(lec)
   if (kind === 'talk') return themeName?.trim() || '—'
   const custom = (lec.customTitle || '').trim()
-  return custom || EVENT_KIND_PDF_TITLE[kind]
+  if (kind === 'other') return custom || 'Erikoistapahtuma'
+  return custom || EVENT_KIND_PDF_TITLE[kind] || EVENT_KIND_LABEL[kind]
 }
