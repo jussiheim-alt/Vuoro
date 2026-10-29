@@ -429,7 +429,12 @@ export function CalendarView({
                       </div>
                     </>
                   ) : isConventionKind(kind) ? (
-                    <strong>{EVENT_KIND_LABEL[kind]}</strong>
+                    <>
+                      <strong>{EVENT_KIND_LABEL[kind]}</strong>
+                      {(primary.customTitle || '').trim() ? (
+                        <div className="hint">{title}</div>
+                      ) : null}
+                    </>
                   ) : (
                     <>
                       <strong>{EVENT_KIND_LABEL[kind]}</strong>
@@ -626,16 +631,24 @@ export function CalendarView({
                       placeholder={
                         draft.eventKind === 'memorial'
                           ? 'esim. Muistojuhlapuhe'
-                          : 'esim. Kierrosviikon teema'
+                          : draft.eventKind === 'circuit_week'
+                            ? 'esim. Kierrosviikon teema'
+                            : draft.eventKind === 'regional_convention'
+                              ? 'esim. Aluekonventin teema'
+                              : 'esim. Kierroskonventin teema'
                       }
                     />
+                    <p className="hint">
+                      Vapaaehtoinen. Kirjoitettu teema näkyy PDF-listalla;
+                      tyhjänä käytetään tyypin nimeä.
+                    </p>
                   </div>
                 ) : null}
 
                 {isConventionKind(draft.eventKind) ? (
                   <p className="hint">
-                    Konventille merkitään vain päivämäärä. Se tulee PDF-listalle
-                    ilman puhujaa, teemaa, puheenjohtajaa tai lukijaa.
+                    Konventille merkitään päivämäärä ja tarvittaessa teema.
+                    PDF-listalle ei tule puhujaa, puheenjohtajaa eikä lukijaa.
                   </p>
                 ) : null}
 
